@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ElectED — Election Process Education</title>
+  <meta name="description" content="Learn how elections work — from voter registration to ballot counting. Interactive, visual, and comprehensive civic education." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:       #0d0f14;
+      --paper:     #f5f0e8;
+      --gold:      #c9a84c;
+      --gold-lt:   #e8c96a;
+      --crimson:   #b5293a;
+      --slate:     #1e2535;
+      --slate-mid: #2e3a52;
+      --muted:     #7a8299;
+      --border:    rgba(201,168,76,.25);
+      --glow:      rgba(201,168,76,.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      line-height: 1.7;
+    }
+
+    /* ── NOISE TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+      background-size: 200px;
+      opacity: .5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 4vw;
+      background: rgba(13,15,20,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: var(--gold);
+      letter-spacing: -.02em;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--paper); }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-size: .82rem; font-weight: 500; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted);
+      text-decoration: none; transition: color .25s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+
+    .nav-cta {
+      background: var(--gold); color: var(--ink) !important;
+      padding: .45rem 1.1rem; border-radius: 2px;
+      font-weight: 500 !important; color: var(--ink) !important;
+    }
+    .nav-cta:hover { background: var(--gold-lt) !important; color: var(--ink) !important; }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 8rem 4vw 4rem;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(201,168,76,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(181,41,58,.06) 0%, transparent 55%),
+        linear-gradient(170deg, #0d0f14 40%, #151a27 100%);
+    }
+
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 0; opacity: .06;
+      background-image:
+        linear-gradient(var(--gold) 1px, transparent 1px),
+        linear-gradient(90deg, var(--gold) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .hero-inner { position: relative; z-index: 1; max-width: 1200px; width: 100%; margin: 0 auto; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: .6rem;
+      font-family: 'DM Mono', monospace; font-size: .75rem; font-weight: 500;
+      letter-spacing: .15em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.8rem;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: block; width: 28px; height: 1px; background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(3rem, 8vw, 7rem); line-height: 1.0;
+      letter-spacing: -.03em; margin-bottom: 1.5rem;
+    }
+    h1 em { font-style: italic; color: var(--gold); }
+
+    .hero-sub {
+      max-width: 540px; font-size: 1.1rem; color: rgba(245,240,232,.65);
+      margin-bottom: 2.8rem; line-height: 1.75;
+    }
+
+    .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--gold); color: var(--ink);
+      font-weight: 500; font-size: .9rem; letter-spacing: .04em;
+      padding: .9rem 2rem; border-radius: 2px;
+      text-decoration: none; transition: all .3s;
+      border: none; cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--gold-lt); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,.3); }
+
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: transparent; color: var(--paper);
+      font-weight: 500; font-size: .9rem; letter-spacing: .04em;
+      padding: .9rem 2rem; border-radius: 2px;
+      text-decoration: none; transition: all .3s;
+      border: 1px solid rgba(245,240,232,.25); cursor: pointer;
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
+
+    .hero-stats {
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .stat-card {
+      background: rgba(30,37,53,.7); border: 1px solid var(--border);
+      backdrop-filter: blur(8px); padding: 1.4rem 1.8rem; border-radius: 4px;
+      text-align: right;
+      animation: floatCard 4s ease-in-out infinite;
+    }
+    .stat-card:nth-child(2) { animation-delay: 1.3s; margin-right: -1.5rem; }
+    .stat-card:nth-child(3) { animation-delay: 2.6s; }
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-6px); }
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900;
+      color: var(--gold); display: block; line-height: 1;
+    }
+    .stat-lbl { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+    /* ── SECTION GLOBALS ── */
+    section { position: relative; z-index: 1; }
+
+    .section-wrap { max-width: 1200px; margin: 0 auto; padding: 5rem 4vw; }
+
+    .section-label {
+      display: inline-flex; align-items: center; gap: .6rem;
+      font-family: 'DM Mono', monospace; font-size: .72rem; font-weight: 500;
+      letter-spacing: .15em; text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    .section-label::before { content: '//'; opacity: .5; }
+
+    h2 {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.1;
+      letter-spacing: -.02em; margin-bottom: 1rem;
+    }
+    h2 em { font-style: italic; color: var(--gold); }
+
+    .section-intro {
+      max-width: 600px; color: rgba(245,240,232,.6);
+      font-size: 1rem; margin-bottom: 3.5rem;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 100%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    /* ── HOW IT WORKS — TIMELINE ── */
+    #process { background: linear-gradient(180deg, var(--ink) 0%, var(--slate) 50%, var(--ink) 100%); }
+
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+    }
+
+    .timeline-item {
+      position: relative; padding: 0 0 3.5rem 3rem;
+      opacity: 0; transform: translateX(-20px);
+      transition: all .6s ease;
+    }
+    .timeline-item.visible { opacity: 1; transform: translateX(0); }
+
+    .timeline-dot {
+      position: absolute; left: -1.9rem; top: .35rem;
+      width: 1rem; height: 1rem; border-radius: 50%;
+      background: var(--ink); border: 2px solid var(--gold);
+      box-shadow: 0 0 12px var(--glow);
+    }
+    .timeline-dot.active { background: var(--gold); }
+
+    .tl-num {
+      font-family: 'DM Mono', monospace; font-size: .68rem;
+      letter-spacing: .12em; color: var(--gold); margin-bottom: .4rem;
+    }
+    .tl-title {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.4rem; margin-bottom: .6rem;
+    }
+    .tl-body { color: rgba(245,240,232,.6); font-size: .95rem; max-width: 560px; }
+
+    .tl-tag {
+      display: inline-block; margin-top: .8rem;
+      font-family: 'DM Mono', monospace; font-size: .68rem;
+      letter-spacing: .08em; text-transform: uppercase;
+      background: var(--glow); border: 1px solid var(--border);
+      color: var(--gold); padding: .25rem .7rem; border-radius: 2px;
+    }
+
+    /* ── SYSTEMS GRID ── */
+    #systems { background: var(--ink); }
+
+    .systems-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5px;
+      background: var(--border); border: 1px solid var(--border);
+    }
+    .system-card {
+      background: var(--ink); padding: 2.2rem;
+      transition: background .3s; cursor: default;
+      position: relative; overflow: hidden;
+    }
+    .system-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      width: 0; height: 2px; background: var(--gold);
+      transition: width .4s ease;
+    }
+    .system-card:hover { background: var(--slate); }
+    .system-card:hover::after { width: 100%; }
+
+    .sys-icon {
+      font-size: 1.8rem; margin-bottom: 1.2rem; display: block;
+      filter: grayscale(1) opacity(.5);
+      transition: filter .3s;
+    }
+    .system-card:hover .sys-icon { filter: none; }
+
+    .sys-name {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.2rem; margin-bottom: .6rem;
+    }
+    .sys-desc { font-size: .88rem; color: rgba(245,240,232,.55); line-height: 1.65; }
+    .sys-examples {
+      margin-top: .9rem; font-family: 'DM Mono', monospace;
+      font-size: .7rem; letter-spacing: .06em; color: var(--gold); opacity: .75;
+    }
+
+    /* ── QUIZ ── */
+    #quiz { background: linear-gradient(180deg, var(--ink) 0%, #0a0c10 100%); }
+
+    .quiz-shell {
+      background: var(--slate);
+      border: 1px solid var(--border);
+      border-radius: 4px; overflow: hidden;
+    }
+
+    .quiz-header {
+      background: linear-gradient(135deg, var(--slate-mid), var(--slate));
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .quiz-header h3 {
+      font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.3rem;
+    }
+    .quiz-badge {
+      background: var(--glow); border: 1px solid var(--border);
+      font-family: 'DM Mono', monospace; font-size: .7rem;
+      letter-spacing: .1em; color: var(--gold); padding: .3rem .8rem; border-radius: 2px;
+    }
+
+    .quiz-body { padding: 2.5rem; }
+
+    .q-counter {
+      font-family: 'DM Mono', monospace; font-size: .7rem;
+      letter-spacing: .1em; color: var(--muted); margin-bottom: 1.2rem;
+    }
+
+    .q-progress {
+      width: 100%; height: 3px; background: rgba(255,255,255,.08);
+      border-radius: 2px; margin-bottom: 2rem; overflow: hidden;
+    }
+    .q-progress-fill {
+      height: 100%; background: var(--gold);
+      border-radius: 2px; transition: width .5s ease;
+    }
+
+    .q-text {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.3rem; line-height: 1.4; margin-bottom: 2rem;
+    }
+
+    .q-options { display: grid; gap: .8rem; }
+
+    .q-option {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+      padding: 1rem 1.4rem; border-radius: 3px;
+      font-size: .92rem; cursor: pointer; text-align: left;
+      transition: all .25s; color: var(--paper);
+      display: flex; align-items: center; gap: .8rem;
+    }
+    .q-option::before {
+      content: attr(data-letter);
+      font-family: 'DM Mono', monospace; font-size: .75rem;
+      width: 1.6rem; height: 1.6rem; border-radius: 50%;
+      background: rgba(255,255,255,.08); display: flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background .25s;
+    }
+    .q-option:hover { border-color: var(--gold); background: var(--glow); }
+    .q-option:hover::before { background: var(--gold); color: var(--ink); }
+    .q-option.correct { border-color: #4caf50 !important; background: rgba(76,175,80,.12) !important; }
+    .q-option.correct::before { background: #4caf50; color: #fff; }
+    .q-option.wrong { border-color: var(--crimson) !important; background: rgba(181,41,58,.12) !important; }
+    .q-option.wrong::before { background: var(--crimson); color: #fff; }
+    .q-option:disabled, .q-option[disabled] { cursor: default; pointer-events: none; }
+
+    .q-explanation {
+      margin-top: 1.4rem; padding: 1rem 1.4rem;
+      background: rgba(201,168,76,.07); border-left: 3px solid var(--gold);
+      font-size: .88rem; color: rgba(245,240,232,.7); display: none;
+      line-height: 1.65;
+    }
+    .q-explanation.show { display: block; }
+
+    .quiz-nav {
+      margin-top: 1.8rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .q-score-pill {
+      font-family: 'DM Mono', monospace; font-size: .72rem;
+      letter-spacing: .08em; color: var(--gold);
+    }
+
+    .quiz-result {
+      text-align: center; padding: 2rem 0; display: none;
+    }
+    .result-num {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: 5rem; color: var(--gold); line-height: 1;
+    }
+    .result-label { font-size: 1.1rem; color: rgba(245,240,232,.6); margin: .5rem 0 2rem; }
+    .result-msg {
+      font-family: 'Playfair Display', serif; font-style: italic;
+      font-size: 1.3rem; margin-bottom: 2rem; color: var(--paper);
+    }
+
+    /* ── GLOSSARY ── */
+    #glossary { background: var(--slate); }
+
+    .glossary-search {
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(255,255,255,.05); border: 1px solid var(--border);
+      border-radius: 3px; padding: .8rem 1.2rem; margin-bottom: 2.5rem;
+    }
+    .glossary-search span { color: var(--muted); font-size: 1rem; }
+    .glossary-search input {
+      flex: 1; background: none; border: none; outline: none;
+      font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--paper);
+    }
+    .glossary-search input::placeholder { color: var(--muted); }
+
+    .glossary-list { display: grid; gap: .8rem; }
+
+    .glossary-item {
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 3px; overflow: hidden; transition: border-color .25s;
+    }
+    .glossary-item:hover { border-color: var(--border); }
+
+    .g-term {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.4rem; cursor: pointer;
+      font-weight: 500; font-size: .95rem;
+    }
+    .g-term .arrow {
+      font-size: .7rem; color: var(--muted); transition: transform .3s;
+    }
+    .glossary-item.open .arrow { transform: rotate(90deg); color: var(--gold); }
+    .glossary-item.open .g-term { color: var(--gold); }
+
+    .g-def {
+      max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s;
+      font-size: .88rem; color: rgba(245,240,232,.6);
+      padding: 0 1.4rem; line-height: 1.7;
+    }
+    .glossary-item.open .g-def {
+      max-height: 200px; padding: 0 1.4rem 1.2rem;
+    }
+
+    /* ── INFOGRAPHIC — WHY VOTE ── */
+    #why { background: var(--ink); }
+
+    .why-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 2rem;
+    }
+    .why-card {
+      border-top: 2px solid var(--gold); padding-top: 1.5rem;
+      opacity: 0; transform: translateY(20px); transition: all .6s ease;
+    }
+    .why-card.visible { opacity: 1; transform: translateY(0); }
+    .why-num {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: 3.5rem; color: rgba(201,168,76,.2);
+      line-height: 1; margin-bottom: .4rem;
+    }
+    .why-title {
+      font-family: 'Playfair Display', serif; font-weight: 700;
+      font-size: 1.15rem; margin-bottom: .6rem;
+    }
+    .why-body { font-size: .88rem; color: rgba(245,240,232,.55); line-height: 1.7; }
+
+    /* ── RIGHTS BANNER ── */
+    #rights {
+      background: var(--gold); color: var(--ink);
+      overflow: hidden; position: relative;
+    }
+    #rights .section-wrap {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center; padding: 5rem 4vw;
+    }
+    #rights h2 { color: var(--ink); }
+    #rights h2 em { color: var(--crimson); }
+    #rights p { font-size: .95rem; line-height: 1.8; opacity: .8; }
+    .rights-list { list-style: none; display: flex; flex-direction: column; gap: .8rem; margin-top: 1.5rem; }
+    .rights-list li {
+      display: flex; align-items: flex-start; gap: .8rem;
+      font-size: .9rem;
+    }
+    .rights-list li::before {
+      content: '✓'; font-weight: 700; color: var(--crimson); flex-shrink: 0; margin-top: .1rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #080a0e; border-top: 1px solid var(--border);
+      padding: 3rem 4vw;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif; font-weight: 900;
+      font-size: 1.3rem; color: var(--gold);
+    }
+    .footer-logo span { color: var(--paper); }
+    .footer-note { font-size: .78rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: .78rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .footer-links a:hover { color: var(--gold); }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal { opacity: 0; transform: translateY(24px); transition: all .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .hero-stats { display: none; }
+      #rights .section-wrap { grid-template-columns: 1fr; gap: 2rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Elect<span>ED</span></a>
+  <ul class="nav-links">
+    <li><a href="#process">The Process</a></li>
+    <li><a href="#systems">Systems</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+    <li><a href="#quiz" class="nav-cta">Take the Quiz</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <p class="hero-eyebrow">Civic Education Platform</p>
+    <h1>Democracy<br>begins with<br><em>your vote.</em></h1>
+    <p class="hero-sub">Learn how elections actually work — from voter registration and campaign finance to ballot counting and certification. Understand the system that shapes the world.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="#process">▶ Start Learning</a>
+      <a class="btn-outline" href="#quiz">Take the Quiz →</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-card">
+      <span class="stat-num">193</span>
+      <span class="stat-lbl">Countries hold elections</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">4.2B</span>
+      <span class="stat-lbl">Eligible voters worldwide</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">7</span>
+      <span class="stat-lbl">Steps in the process</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="section-wrap">
+    <p class="section-label">How It Works</p>
+    <h2>The Election <em>Process</em></h2>
+    <p class="section-intro">Every democratic election follows a structured journey from candidate announcement to final certification. Here's the complete path.</p>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot active"></div>
+        <p class="tl-num">01 / STEP ONE</p>
+        <h3 class="tl-title">Voter Registration</h3>
+        <p class="tl-body">Citizens must register to vote in most countries before an election. Registration verifies eligibility based on age (typically 18+), citizenship, and residency. Many countries offer online, mail, or in-person registration. Some nations, like Germany, have automatic voter registration.</p>
+        <span class="tl-tag">📋 Citizens' Responsibility</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="tl-num">02 / STEP TWO</p>
+        <h3 class="tl-title">Candidate Nomination</h3>
+        <p class="tl-body">Political parties hold primaries or caucuses to select their candidates. Independent candidates may run by gathering petition signatures. Each country sets requirements for who can run — age limits, citizenship requirements, and financial disclosures are common.</p>
+        <span class="tl-tag">🏛️ Political Parties</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="tl-num">03 / STEP THREE</p>
+        <h3 class="tl-title">Campaigning</h3>
+        <p class="tl-body">Candidates campaign to convince voters of their policy positions and qualifications. This phase includes debates, rallies, advertising, and outreach. Campaign finance laws regulate how much can be raised and spent, and from whom. Media coverage plays a crucial role in informing the public.</p>
+        <span class="tl-tag">📣 Public Engagement</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="tl-num">04 / STEP FOUR</p>
+        <h3 class="tl-title">Election Day Voting</h3>
+        <p class="tl-body">Registered voters cast their ballots at polling stations or via mail/absentee ballots. Poll workers verify voter identity and guide the process. Voting methods vary: paper ballots, electronic machines, or ranked-choice systems. Independent observers monitor for fraud and procedural compliance.</p>
+        <span class="tl-tag">🗳️ Democratic Exercise</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="tl-num">05 / STEP FIVE</p>
+        <h3 class="tl-title">Vote Counting & Tabulation</h3>
+        <p class="tl-body">Ballots are counted by election officials, often with bipartisan observers. Preliminary results are reported on election night, but official totals take longer. Absentee and provisional ballots require additional verification. Modern elections use automated counting machines with paper audit trails.</p>
+        <span class="tl-tag">🔢 Verification Process</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="tl-num">06 / STEP SIX</p>
+        <h3 class="tl-title">Results & Challenges</h3>
+        <p class="tl-body">Official results are declared after all ballots are counted and certified. Losing candidates may request recounts or challenge results through legal channels if they believe rules were violated. Courts adjudicate disputes. Most elections result in peaceful acceptance of outcomes.</p>
+        <span class="tl-tag">⚖️ Legal Oversight</span>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <p class="tl-num">07 / STEP SEVEN</p>
+        <h3 class="tl-title">Certification & Transfer of Power</h3>
+        <p class="tl-body">Official bodies certify final results. In presidential systems, the incoming leader is inaugurated. Peaceful transitions of power are a hallmark of mature democracies. The outgoing administration cooperates with the incoming one to ensure government continuity.</p>
+        <span class="tl-tag">🏛️ Democratic Norm</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SYSTEMS -->
+<section id="systems">
+  <div class="section-wrap">
+    <p class="section-label reveal">Electoral Systems</p>
+    <h2 class="reveal">How Votes <em>Translate</em><br>into Power</h2>
+    <p class="section-intro reveal">Different countries use different electoral systems, each with distinct trade-offs between representation, stability, and voter choice.</p>
+
+    <div class="systems-grid reveal">
+      <div class="system-card">
+        <span class="sys-icon">🗳️</span>
+        <p class="sys-name">First-Past-the-Post (FPTP)</p>
+        <p class="sys-desc">The candidate with the most votes wins, even without a majority. Simple and decisive, but can under-represent smaller parties and lead to "wasted votes."</p>
+        <p class="sys-examples">Used in: USA · UK · Canada · India</p>
+      </div>
+
+      <div class="system-card">
+        <span class="sys-icon">📊</span>
+        <p class="sys-name">Proportional Representation</p>
+        <p class="sys-desc">Parties receive seats proportional to their vote share. More voices are represented, but can lead to coalition governments and political fragmentation.</p>
+        <p class="sys-examples">Used in: Germany · Netherlands · Sweden</p>
+      </div>
+
+      <div class="system-card">
+        <span class="sys-icon">🔢</span>
+        <p class="sys-name">Ranked-Choice Voting</p>
+        <p class="sys-desc">Voters rank candidates by preference. If no one gets a majority, the last-place candidate is eliminated and their votes redistributed. Reduces "spoiler" effects.</p>
+        <p class="sys-examples">Used in: Australia · Ireland · Maine (US)</p>
+      </div>
+
+      <div class="system-card">
+        <span class="sys-icon">⚖️</span>
+        <p class="sys-name">Two-Round System</p>
+        <p class="sys-desc">If no candidate wins a majority in Round 1, the top two face each other in a runoff. Ensures the winner has broad support.</p>
+        <p class="sys-examples">Used in: France · Brazil · Russia</p>
+      </div>
+
+      <div class="system-card">
+        <span class="sys-icon">🏛️</span>
+        <p class="sys-name">Mixed-Member Proportional</p>
+        <p class="sys-desc">Combines local constituency seats with proportional party seats to balance local representation with fair overall proportionality.</p>
+        <p class="sys-examples">Used in: Germany · New Zealand · Japan</p>
+      </div>
+
+      <div class="system-card">
+        <span class="sys-icon">🗺️</span>
+        <p class="sys-name">Electoral College</p>
+        <p class="sys-desc">Indirect election where voters choose "electors" who formally select the president. Balances influence between states, though can diverge from popular vote.</p>
+        <p class="sys-examples">Used in: United States (President)</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHY VOTE -->
+<section id="why">
+  <div class="section-wrap">
+    <p class="section-label reveal">Why It Matters</p>
+    <h2 class="reveal">The Stakes of <em>Participation</em></h2>
+    <p class="section-intro reveal">Voting is more than a right — it's the foundation of self-governance. Here's why every ballot counts.</p>
+
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-num">01</div>
+        <p class="why-title">Shapes Policy Directly</p>
+        <p class="why-body">Elected officials make decisions on healthcare, education, taxes, and national security. Your vote determines who makes those calls and which priorities they pursue.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-num">02</div>
+        <p class="why-title">Amplifies Marginalized Voices</p>
+        <p class="why-body">Historically, voting rights were denied to women, minorities, and the poor. Participating honors that struggle and ensures all communities have representation.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-num">03</div>
+        <p class="why-title">Local Elections Have Huge Impact</p>
+        <p class="why-body">School boards, mayors, and city councils control schools, policing, and infrastructure. Local races are often decided by dozens of votes — yours matters most.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-num">04</div>
+        <p class="why-title">Builds Democratic Legitimacy</p>
+        <p class="why-body">High voter turnout signals a healthy democracy. Governments elected by large majorities have stronger mandates and greater public trust to govern effectively.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="section-wrap">
+    <p class="section-label reveal">Knowledge Check</p>
+    <h2 class="reveal">Test Your <em>Civic Knowledge</em></h2>
+    <p class="section-intro reveal">Eight questions covering registration, electoral systems, voting rights, and election security. How well do you know democracy?</p>
+
+    <div class="quiz-shell reveal" id="quizShell">
+      <div class="quiz-header">
+        <h3>Election Knowledge Quiz</h3>
+        <span class="quiz-badge" id="qBadge">8 Questions</span>
+      </div>
+      <div class="quiz-body" id="quizBody">
+        <p class="q-counter" id="qCounter">Question 1 of 8</p>
+        <div class="q-progress"><div class="q-progress-fill" id="qProgress" style="width:0%"></div></div>
+        <p class="q-text" id="qText"></p>
+        <div class="q-options" id="qOptions"></div>
+        <div class="q-explanation" id="qExplain"></div>
+        <div class="quiz-nav">
+          <span class="q-score-pill" id="qScore">Score: 0</span>
+          <button class="btn-primary" id="qNext" style="display:none" onclick="nextQuestion()">Next Question →</button>
+        </div>
+      </div>
+      <div class="quiz-result" id="quizResult">
+        <div class="result-num" id="resultNum"></div>
+        <p class="result-label">out of 8 correct</p>
+        <p class="result-msg" id="resultMsg"></p>
+        <button class="btn-primary" onclick="restartQuiz()">🔄 Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RIGHTS BANNER -->
+<section id="rights">
+  <div class="section-wrap">
+    <div>
+      <h2>Know Your<br><em>Voting Rights.</em></h2>
+      <p style="margin-top:1rem">In most democracies, voting rights are protected by constitution or law. Understanding them empowers you to participate fully and report any violations.</p>
+    </div>
+    <ul class="rights-list">
+      <li>Every eligible citizen has the right to register and vote</li>
+      <li>You cannot be intimidated or coerced at the polling station</li>
+      <li>Assistance is available for voters with disabilities</li>
+      <li>Your ballot is secret — no one can force you to reveal your vote</li>
+      <li>You can request a provisional ballot if your registration is unclear</li>
+      <li>Voting discrimination based on race, sex, or religion is illegal</li>
+      <li>You have the right to observe the counting process in many jurisdictions</li>
+    </ul>
+  </div>
+</section>
+
+<!-- GLOSSARY -->
+<section id="glossary">
+  <div class="section-wrap">
+    <p class="section-label reveal">Key Terms</p>
+    <h2 class="reveal">Election <em>Glossary</em></h2>
+    <p class="section-intro reveal">Essential vocabulary for understanding democratic processes and civic participation.</p>
+
+    <div class="glossary-search reveal">
+      <span>🔍</span>
+      <input type="text" id="glossSearch" placeholder="Search terms…" oninput="filterGlossary()" />
+    </div>
+
+    <div class="glossary-list" id="glossList"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">Elect<span>ED</span></div>
+      <p class="footer-note" style="margin-top:.4rem">Built for PromptWars — Civic Education Track</p>
+    </div>
+    <div class="footer-links">
+      <a href="#hero">Home</a>
+      <a href="#process">Process</a>
+      <a href="#systems">Systems</a>
+      <a href="#quiz">Quiz</a>
+      <a href="#glossary">Glossary</a>
+    </div>
+    <p class="footer-note">© 2026 ElectED. Open source under MIT License.</p>
+  </div>
+</footer>
+
+<script>
+/* ── QUIZ DATA ── */
+const questions = [
+  {
+    q: "What is the primary purpose of voter registration?",
+    opts: ["To collect personal data for government use", "To verify eligibility and maintain accurate voter rolls", "To assign voters to specific political parties", "To raise funds for election administration"],
+    ans: 1,
+    explain: "Voter registration verifies that a person meets the legal requirements to vote — such as age, citizenship, and residency — and helps maintain accurate, updated voter rolls to prevent fraud."
+  },
+  {
+    q: "In a First-Past-the-Post system, who wins the election?",
+    opts: ["The candidate with more than 50% of votes", "The candidate with the most votes, regardless of majority", "The candidate selected by the Electoral College", "The candidate who wins the most districts"],
+    ans: 1,
+    explain: "In FPTP, the winner is simply whoever receives the most votes — even if that's only 30% of total votes cast. This is sometimes called a 'plurality' win rather than a 'majority' win."
+  },
+  {
+    q: "What does 'ranked-choice voting' allow voters to do?",
+    opts: ["Vote multiple times in different districts", "Rank candidates in order of preference", "Choose which party to vote for after seeing results", "Select both a first and second party to represent them"],
+    ans: 1,
+    explain: "Ranked-choice voting lets voters rank candidates 1st, 2nd, 3rd, etc. If no candidate wins a majority, the last-place candidate is eliminated and their voters' second choices are counted — this continues until someone reaches 50%+1."
+  },
+  {
+    q: "A 'provisional ballot' is used when:",
+    opts: ["A voter wants to vote for multiple parties", "A voter's registration status cannot be immediately confirmed", "A voter is casting a vote from another country", "A candidate withdraws on election day"],
+    ans: 1,
+    explain: "Provisional ballots are given to voters whose registration cannot be immediately verified at the polling station. They are set aside and counted after officials verify the voter's eligibility — protecting the right to vote while maintaining election integrity."
+  },
+  {
+    q: "What is 'gerrymandering'?",
+    opts: ["The process of counting absentee ballots", "Manipulating district boundaries to favor a political party", "A form of proportional representation used in Germany", "The procedure for certifying election results"],
+    ans: 1,
+    explain: "Gerrymandering is the manipulation of electoral district boundaries to give one political party an unfair advantage. The term originated from Governor Elbridge Gerry of Massachusetts in 1812, whose redistricted map resembled a salamander."
+  },
+  {
+    q: "Which country uses a Two-Round (runoff) system for presidential elections?",
+    opts: ["United States", "United Kingdom", "France", "Australia"],
+    ans: 2,
+    explain: "France uses a two-round system for presidential elections. If no candidate gets an absolute majority in Round 1, the top two candidates face off in a second round — ensuring the winner has broad support."
+  },
+  {
+    q: "What is the purpose of an 'exit poll'?",
+    opts: ["To count official votes after polling stations close", "To survey voters about who they voted for and why", "To verify voter identification after voting", "To report on campaign finance violations"],
+    ans: 1,
+    explain: "Exit polls survey voters as they leave polling stations to gather data on voting patterns, demographic breakdowns, and key issues. They're used by media organizations to make early projections — though they can differ from official results."
+  },
+  {
+    q: "The 19th Amendment to the U.S. Constitution (1920) established:",
+    opts: ["The right to vote regardless of race", "Women's right to vote", "The direct election of U.S. Senators", "The abolition of poll taxes"],
+    ans: 1,
+    explain: "The 19th Amendment, ratified in 1920, granted American women the right to vote — a landmark victory of the women's suffrage movement that had campaigned for decades. The 15th Amendment (1870) had earlier extended voting rights regardless of race."
+  }
+];
+
+let currentQ = 0, score = 0, answered = false;
+
+function loadQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('qCounter').textContent = `Question ${currentQ + 1} of ${questions.length}`;
+  document.getElementById('qProgress').style.width = `${(currentQ / questions.length) * 100}%`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qExplain').className = 'q-explanation';
+  document.getElementById('qNext').style.display = 'none';
+  answered = false;
+
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-option';
+    btn.setAttribute('data-letter', letters[i]);
+    btn.textContent = o;
+    btn.onclick = () => selectAnswer(i);
+    opts.appendChild(btn);
+  });
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentQ];
+  const btns = document.querySelectorAll('.q-option');
+  btns.forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.ans) b.classList.add('correct');
+    else if (idx === i && i !== q.ans) b.classList.add('wrong');
+  });
+  if (i === q.ans) { score++; document.getElementById('qScore').textContent = `Score: ${score}`; }
+  document.getElementById('qExplain').textContent = q.explain;
+  document.getElementById('qExplain').classList.add('show');
+  if (currentQ < questions.length - 1) {
+    document.getElementById('qNext').style.display = 'inline-flex';
+  } else {
+    setTimeout(showResult, 1200);
+  }
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < questions.length) loadQuestion();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById('quizBody').style.display = 'none';
+  const r = document.getElementById('quizResult');
+  r.style.display = 'block';
+  document.getElementById('resultNum').textContent = score;
+  const msgs = [
+    [0,2, "Keep learning — democracy is worth understanding! 📚"],
+    [3,5, "Good foundation — dig deeper into civic education! 🗳️"],
+    [6,7, "Impressive civic knowledge! You're nearly an expert. 🏛️"],
+    [8,8, "Perfect score! Democracy couldn't be in better hands. 🌟"]
+  ];
+  const msg = msgs.find(([lo, hi]) => score >= lo && score <= hi);
+  document.getElementById('resultMsg').textContent = msg[2];
+  document.getElementById('qProgress').style.width = '100%';
+}
+
+function restartQuiz() {
+  currentQ = 0; score = 0;
+  document.getElementById('quizBody').style.display = 'block';
+  document.getElementById('quizResult').style.display = 'none';
+  document.getElementById('qScore').textContent = 'Score: 0';
+  loadQuestion();
+}
+
+/* ── GLOSSARY DATA ── */
+const glossary = [
+  { term: "Absentee Ballot", def: "A ballot cast by a voter who is unable to attend the polling station on election day, submitted by mail or drop box before the election." },
+  { term: "Ballot Initiative", def: "A process by which citizens can place proposed legislation or constitutional amendments on the ballot by gathering enough petition signatures." },
+  { term: "Campaign Finance", def: "The money raised and spent to influence elections, including contributions to candidates, political parties, and outside groups. Regulated by law in most democracies." },
+  { term: "Caucus", def: "A gathering of party members to discuss and vote on candidates, used in some U.S. states instead of a primary election." },
+  { term: "Certification", def: "The official confirmation of election results by the appropriate government authority, making them legally binding." },
+  { term: "Constituency", def: "A geographic area whose residents are represented by an elected official. Also called a district, riding, or electorate." },
+  { term: "Disenfranchisement", def: "The removal of voting rights or the practical inability to vote, whether through legal restrictions, administrative barriers, or voter suppression." },
+  { term: "Electoral College", def: "The body of representatives in the United States that formally elects the President, with each state's count based on its Congressional representation." },
+  { term: "Exit Poll", def: "A survey of voters conducted immediately after they have voted, used to predict election outcomes and analyze voting patterns." },
+  { term: "Gerrymandering", def: "The manipulation of electoral district boundaries to favor a particular political party, candidate, or demographic group." },
+  { term: "Incumbent", def: "The current holder of a political office who is running for re-election." },
+  { term: "Proportional Representation", def: "An electoral system where the percentage of seats won by a party roughly equals the percentage of votes they received nationally." },
+  { term: "Quorum", def: "The minimum number of members of a deliberative body that must be present for valid business to be conducted." },
+  { term: "Recount", def: "A repeat tallying of votes cast in an election, conducted when the initial result is questioned or when the margin is extremely close." },
+  { term: "Suffrage", def: "The right to vote in political elections. Universal suffrage means all adult citizens have this right regardless of gender, race, or class." },
+  { term: "Voter Suppression", def: "Efforts to discourage or prevent specific groups of people from voting, including through ID requirements, reduced polling locations, or misinformation campaigns." },
+];
+
+function renderGlossary(items) {
+  const list = document.getElementById('glossList');
+  list.innerHTML = items.map(g => `
+    <div class="glossary-item">
+      <div class="g-term" onclick="toggleGloss(this)">
+        <span>${g.term}</span>
+        <span class="arrow">▶</span>
+      </div>
+      <div class="g-def">${g.def}</div>
+    </div>
+  `).join('');
+}
+
+function toggleGloss(el) {
+  el.closest('.glossary-item').classList.toggle('open');
+}
+
+function filterGlossary() {
+  const q = document.getElementById('glossSearch').value.toLowerCase();
+  renderGlossary(glossary.filter(g => g.term.toLowerCase().includes(q) || g.def.toLowerCase().includes(q)));
+}
+
+/* ── SCROLL REVEAL ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal, .timeline-item, .why-card').forEach(el => observer.observe(el));
+
+/* ── INIT ── */
+renderGlossary(glossary);
+loadQuestion();
+</script>
+</body>
+</html>
